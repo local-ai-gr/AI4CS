@@ -1,0 +1,12 @@
+pandas==1.5.1
+psycopg2-binary==2.9.4
+requests
+pytrends
+googlemaps
+SQLAlchemy
+geopy
+scikit-learn
+flexpolyline
+matplotlib
+statsmodels
+prophet

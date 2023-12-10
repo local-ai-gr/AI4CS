@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+
+  db:
+    container_name: postgis-container
+    restart: unless-stopped
+    image: postgis/postgis:15-3.3
+    volumes:
+      #- ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - ./pg_data:/var/lib/postgresql/data/
+      - ./pg_shared:/pg_shared
+    ports:
+      - 5432:5432
+    env_file:
+      - ./.env
+
+
+  analytics-engine:
+    container_name: analytics-engine-container
+    restart: unless-stopped
+    build: 
+      context: ./analytics-engine
+      network: host
+    volumes:
+      - ./analytics-engine/:/home
+      - ./pg_shared:/home/pg_shared
+    tty: true
+    env_file:
+      - ./.env
+
+  app-dev:
+    container_name: app-dev-container
+    restart: always
+    build:
+      context: ./app
+      network: host
+    volumes:
+      - ./app/:/usr/src/app
+      - "/usr/src/app/node_modules"
+    ports:
+      - 3000:3000
+      - 24678:24678
+
+  nginx:
+    image: nginx
+    restart: always
+    container_name: nginx-container
+    volumes: 
+      - ./nginx/fullchain.pem:/etc/ssl/certs/fullchain.pem
+      - ./nginx/privkey.pem:/etc/ssl/private/privkey.pem
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./ai4cs-prod:/static/ai4cs
+    ports:
+      - 443:443
+      - 80:80
+
+  api:
+    container_name: api-container
+    restart: always
+    build: 
+      context: ./api
+      network: host
+    command: gunicorn --workers=5 --threads=5 --reload --bind 0.0.0.0:5000 manage:app
+    volumes:
+      - ./api/:/usr/src/app/
+    ports:
+      - 5000:5000
+    env_file:
+      - ./.env
+
+  generic_adapter:
+    container_name: genericadapter
+    image: docker-registry.inesctec.pt/interconnect-public/generic-adapter:latest
+    restart: unless-stopped
+    ports:
+      - 9001:9001
+      - 9090:9090
