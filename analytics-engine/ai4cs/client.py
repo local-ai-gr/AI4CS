@@ -17,7 +17,7 @@ class ClientAdapter(ServiceSpecificAdapterBase):
 if __name__ == "__main__":
     ga = ClientAdapter(server)
     
-    ga.service_store_login('paravantinos@local-ai.gr', 'Agapis2306!') 
+    ga.service_store_login(os.getenv('ga_user'), os.getenv('ga_password')) 
     knowledge_base_name = 'SSAClient'
     knowledge_base_description = 'SSAClient'
     knowledge_base_id = 'https://ke.interconnectproject.eu/rest/adapter/RecommenderSSAClient'
